@@ -22,7 +22,7 @@ func New(config TelegramSenderConfig) *telegramSender {
 	return &telegramSender{Config: &config}
 }
 
-func (ts *telegramSender) Send(message *message.Message, channelName string) error {
+func (ts *telegramSender) Send(message message.Message, channelName string) error {
 	endpoint, err := url.Parse("http://api.telegram.org/bot" + ts.Config.ApiToken + "/sendMessage")
 
 	if err != nil {
