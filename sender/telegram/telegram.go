@@ -5,11 +5,12 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/gornius/infobutor/message"
 )
 
-type telegramSender struct {
+type TelegramSender struct {
 	Config *TelegramSenderConfig
 }
 
@@ -18,11 +19,7 @@ type TelegramSenderConfig struct {
 	ChatId   string
 }
 
-func New(config TelegramSenderConfig) *telegramSender {
-	return &telegramSender{Config: &config}
-}
-
-func (ts *telegramSender) Send(message message.Message, channelName string) error {
+func (ts *TelegramSender) Send(message message.Message) error {
 	endpoint, err := url.Parse("http://api.telegram.org/bot" + ts.Config.ApiToken + "/sendMessage")
 
 	if err != nil {
@@ -49,6 +46,18 @@ func (ts *telegramSender) Send(message message.Message, channelName string) erro
 
 		fmt.Printf("resultBody: %v\n", string(resultBody))
 	}
+
+	return nil
+}
+
+func (ts *TelegramSender) LoadConfig(config map[string]any) error {
+	ts.Config = &TelegramSenderConfig{}
+	ts.Config.ApiToken = config["api_token"].(string)
+	chatId, ok := config["chat_id"].(string)
+	if !ok {
+		chatId = strconv.Itoa(config["chat_id"].(int))
+	}
+	ts.Config.ChatId = chatId
 
 	return nil
 }
