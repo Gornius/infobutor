@@ -1,0 +1,11 @@
+senders:
+  my_telegram:
+    type: telegram
+    api_token: YOUR_API_TOKEN
+    chat_id: -123456789
+
+channels:
+  default:
+    token: 2018s1m0eme0i1we21ps21
+    sender: my_telegram
+    

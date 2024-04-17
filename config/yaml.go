@@ -1,9 +1,8 @@
 package config
 
 import (
-	"errors"
+	_ "embed"
 	"os"
-	"path/filepath"
 
 	"github.com/gornius/infobutor/channel"
 	"github.com/gornius/infobutor/sender"
@@ -11,28 +10,19 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func FromFile(senderManager *manager.Manager, filePath string) (*Config, error) {
-	configMap := map[string]any{}
-
-	file, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	switch extension := filepath.Ext(filePath); extension {
-	case ".yml", ".yaml":
-		err = yaml.Unmarshal(file, configMap)
-		if err != nil {
-			return nil, err
-		}
-		return FromMap(senderManager, configMap)
-	}
-
-	return nil, errors.New("unsupported config file type")
-
+type YamlParser struct {
 }
 
-func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config, error) {
+func (yp *YamlParser) FromFile(senderManager *manager.Manager, file []byte) (*Config, error) {
+	configMap := map[string]any{}
+
+	if err := yaml.Unmarshal(file, configMap); err != nil {
+		return nil, err
+	}
+	return yp.FromMap(senderManager, configMap)
+}
+
+func (yp *YamlParser) FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config, error) {
 	senders := map[string]sender.Sender{}
 	if configMap["channels"] != nil {
 		sendersConfigMap := configMap["senders"].(map[string]any)
@@ -63,4 +53,16 @@ func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config,
 
 	return config, nil
 
+}
+
+//go:embed default_configs/conf.yml
+var defaultYaml []byte
+
+func (yp *YamlParser) CreateDefault(path string) error {
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0664)
+	if err != nil {
+		return err
+	}
+	file.Write(defaultYaml)
+	return nil
 }
