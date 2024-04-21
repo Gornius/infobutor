@@ -7,5 +7,6 @@ senders:
 channels:
   default:
     token: 2018s1m0eme0i1we21ps21
-    sender: my_telegram
+    senders: 
+      - my_telegram
     
