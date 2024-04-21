@@ -1,9 +1,9 @@
 package message
 
 type Message struct {
-	Title   string
-	Content string
-	Origin  string
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	Origin  string `json:"origin"`
 }
 
 type MessageEnvelope struct {
