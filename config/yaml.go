@@ -22,6 +22,7 @@ func (yp *YamlParser) FromFile(senderManager *manager.Manager, file []byte) (*Co
 	return yp.FromMap(senderManager, configMap)
 }
 
+// TODO: move all of this to config - no reason to make this yaml specific
 func (yp *YamlParser) FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config, error) {
 	senders := map[string]sender.Sender{}
 	if configMap["channels"] != nil {
@@ -39,9 +40,13 @@ func (yp *YamlParser) FromMap(senderManager *manager.Manager, configMap map[stri
 	if configMap["channels"] != nil {
 		channelConfigMap := configMap["channels"].(map[string]any)
 		for channelId, channelConfig := range channelConfigMap {
+			channelSenders := []sender.Sender{}
+			for _, senderId := range channelConfig.(map[string]any)["senders"].([]any) {
+				channelSenders = append(channelSenders, senders[senderId.(string)])
+			}
 			channels[channelId] = &channel.Channel{
 				Token:   channelConfig.(map[string]any)["token"].(string),
-				Senders: []sender.Sender{senders[channelConfig.(map[string]any)["sender"].(string)]},
+				Senders: channelSenders,
 			}
 		}
 	}

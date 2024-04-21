@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gornius/infobutor/channel"
 	"github.com/gornius/infobutor/config"
@@ -39,9 +40,15 @@ func main() {
 			return c.NoContent(http.StatusBadRequest) // TODO: Implement error handling
 		}
 
+		wg := sync.WaitGroup{}
 		for _, channel := range channel.Senders {
-			channel.Send(msg)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				channel.Send(msg)
+			}()
 		}
+		wg.Wait()
 
 		return nil
 	})
