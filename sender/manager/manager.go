@@ -6,6 +6,7 @@ import (
 
 	"github.com/gornius/infobutor/sender"
 	"github.com/gornius/infobutor/sender/discord"
+	"github.com/gornius/infobutor/sender/localfile"
 	"github.com/gornius/infobutor/sender/telegram"
 )
 
@@ -16,8 +17,9 @@ type Manager struct {
 func WithAllBuiltIn() Manager {
 	return Manager{
 		Senders: map[string]reflect.Type{
-			"telegram": reflect.TypeOf(telegram.TelegramSender{}),
-			"discord":  reflect.TypeOf(discord.DiscordWebhookSender{}),
+			"telegram":  reflect.TypeOf(telegram.TelegramSender{}),
+			"discord":   reflect.TypeOf(discord.DiscordWebhookSender{}),
+			"localfile": reflect.TypeOf(localfile.LocalFileSender{}),
 		},
 	}
 }

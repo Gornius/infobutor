@@ -21,6 +21,7 @@ Using multiple channels you can send non-important messages to different places.
 ## Already available senders
 - Discord
 - Telegram
+- Local file
 
 ## Planned senders
 - E-mail
