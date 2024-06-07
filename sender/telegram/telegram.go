@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,8 +16,8 @@ type TelegramSender struct {
 }
 
 type TelegramSenderConfig struct {
-	ApiToken string
-	ChatId   string
+	ApiToken string `json:"api_token"`
+	ChatId   int    `json:"chat_id"`
 }
 
 func (ts *TelegramSender) Send(message message.Message) error {
@@ -27,7 +28,7 @@ func (ts *TelegramSender) Send(message message.Message) error {
 	}
 
 	query := endpoint.Query()
-	query.Set("chat_id", ts.Config.ChatId)
+	query.Set("chat_id", strconv.Itoa(ts.Config.ChatId))
 	query.Set("text", message.Content)
 	endpoint.RawQuery = query.Encode()
 
@@ -52,12 +53,14 @@ func (ts *TelegramSender) Send(message message.Message) error {
 
 func (ts *TelegramSender) LoadConfig(config map[string]any) error {
 	ts.Config = &TelegramSenderConfig{}
-	ts.Config.ApiToken = config["api_token"].(string)
-	chatId, ok := config["chat_id"].(string)
-	if !ok {
-		chatId = strconv.Itoa(config["chat_id"].(int))
+	tempJson, err := json.Marshal(config)
+	if err != nil {
+		return err
 	}
-	ts.Config.ChatId = chatId
+	err = json.Unmarshal(tempJson, ts.Config)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

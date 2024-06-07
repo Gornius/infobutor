@@ -16,7 +16,7 @@ type DiscordWebhookSender struct {
 }
 
 type DiscordWebhookSenderConfig struct {
-	WebhookUrl string
+	WebhookUrl string `json:"webhook_url"`
 }
 
 func (s *DiscordWebhookSender) Send(message message.Message) error {
@@ -53,7 +53,14 @@ func (s *DiscordWebhookSender) Send(message message.Message) error {
 
 func (s *DiscordWebhookSender) LoadConfig(config map[string]any) error {
 	s.Config = &DiscordWebhookSenderConfig{}
-	s.Config.WebhookUrl = config["webhook_url"].(string)
+	tempJson, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(tempJson, s.Config)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -1,6 +1,7 @@
 package localfile
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/user"
@@ -15,8 +16,8 @@ type LocalFileSender struct {
 }
 
 type LocalFileSenderConfig struct {
-	Path      string
-	SplitDays bool
+	Path      string `json:"path"`
+	SplitDays bool   `json:"split_days"`
 }
 
 func parsePath(path string, splitDays bool) (string, error) {
@@ -76,7 +77,15 @@ func (lfs *LocalFileSender) Send(message message.Message) error {
 
 func (lfs *LocalFileSender) LoadConfig(config map[string]any) error {
 	lfs.Config = &LocalFileSenderConfig{}
-	lfs.Config.Path = config["path"].(string)
-	lfs.Config.SplitDays = config["split_days"].(bool)
+
+	tempJson, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(tempJson, lfs.Config)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
