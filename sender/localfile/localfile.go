@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
 	"time"
 
@@ -30,11 +29,11 @@ func parsePath(path string, splitDays bool) (string, error) {
 	fmt.Printf("ext: %v\n", ext)
 
 	if dir[:1] == "~" {
-		usr, err := user.Current()
+		var err error
+		dir, err = os.UserHomeDir()
 		if err != nil {
 			return "", err
 		}
-		dir = filepath.Join(usr.HomeDir, dir[1:])
 	}
 
 	if splitDays {
