@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gornius/infobutor/message"
+	"github.com/gornius/infobutor/pkg/pathutils"
 )
 
 type LocalFileSender struct {
@@ -21,38 +23,27 @@ type LocalFileSenderConfig struct {
 
 func parsePath(path string, splitDays bool) (string, error) {
 	dir := filepath.Dir(path)
-	base := filepath.Base(path)
 	ext := filepath.Ext(path)
+	base := strings.TrimSuffix(filepath.Base(path), ext)
 
-	fmt.Printf("dir: %v\n", dir)
-	fmt.Printf("base: %v\n", base)
-	fmt.Printf("ext: %v\n", ext)
-
-	if dir[:1] == "~" {
-		var err error
-		dir, err = os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
+	dir, err := pathutils.ExpandTildeToHomeDir(dir)
+	if err != nil {
+		return "", err
 	}
 
 	if splitDays {
+		fmt.Println(base)
 		base += "_" + time.Now().Format(time.DateOnly)
 	}
 
-	return filepath.Join(dir, base) + "." + ext, nil
+	return filepath.Join(dir, base) + ext, nil
 }
 
 func (lfs *LocalFileSender) Send(message message.Message) error {
 	filePath, err := parsePath(lfs.Config.Path, lfs.Config.SplitDays)
-	fmt.Printf("filePath: %v\n", filePath)
 	if err != nil {
 		return err
 	}
-	if lfs.Config.SplitDays {
-		filePath += "_" + time.Now().Format(time.DateOnly)
-	}
-
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
