@@ -32,7 +32,6 @@ func parsePath(path string, splitDays bool) (string, error) {
 	}
 
 	if splitDays {
-		fmt.Println(base)
 		base += "_" + time.Now().Format(time.DateOnly)
 	}
 
