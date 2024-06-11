@@ -22,3 +22,21 @@ func TestParsePath(t *testing.T) {
 	got, _ = parsePath(path, true)
 	assert.Equal(expected, got, "Parse path with splitting days")
 }
+
+func TestLoadConfig(t *testing.T) {
+	assert := assert.New(t)
+	path := "~/.local/infobutor.log"
+	splitDays := false
+	configMap := map[string]any{
+		"path":       path,
+		"split_days": splitDays,
+	}
+	expected := &LocalFileSenderConfig{
+		Path:      path,
+		SplitDays: splitDays,
+	}
+	lfs := LocalFileSender{}
+	lfs.LoadConfig(configMap)
+	got := lfs.Config
+	assert.EqualValues(expected, got)
+}

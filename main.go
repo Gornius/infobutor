@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	senderManager := manager.WithAllBuiltIn()
+	senderManager := manager.NewWithAllBuiltIn()
 	config, err := config.FromFile(&senderManager, config.DefaultLocation())
 	if err != nil {
 		fmt.Println("Failed to load config")

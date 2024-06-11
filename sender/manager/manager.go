@@ -13,7 +13,7 @@ type Manager struct {
 	Factories map[string]func() sender.Sender
 }
 
-func WithAllBuiltIn() Manager {
+func NewWithAllBuiltIn() Manager {
 	return Manager{
 		Factories: map[string]func() sender.Sender{
 			"discord": func() sender.Sender {
@@ -43,4 +43,10 @@ func (manager *Manager) Register(name string, factory func() sender.Sender) erro
 	}
 	manager.Factories[name] = factory
 	return nil
+}
+
+func New() *Manager {
+	return &Manager{
+		Factories: map[string]func() sender.Sender{},
+	}
 }
