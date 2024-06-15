@@ -1,6 +1,8 @@
 package channel
 
 import (
+	"sync"
+
 	"github.com/gornius/infobutor/message"
 	"github.com/gornius/infobutor/sender"
 )
@@ -11,8 +13,17 @@ type Channel struct {
 	Senders []sender.Sender
 }
 
-func (ch *Channel) Send(message *message.Message) {
-	for _, sender := range ch.Senders {
-		sender.Send(*message)
+// TODO: implement async error handling and write tests
+func (ch *Channel) Send(message *message.Message) error {
+	wg := sync.WaitGroup{}
+	for _, s := range ch.Senders {
+		s := s
+		wg.Add(1)
+		go func() {
+			s.Send(*message)
+			wg.Done()
+		}()
 	}
+	wg.Wait()
+	return nil
 }

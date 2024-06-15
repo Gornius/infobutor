@@ -55,9 +55,10 @@ func FromFile(manager *manager.Manager, path string) (*Config, error) {
 	return FromMap(manager, configMap)
 }
 
+// TODO: refactor - AND GET RID OF ALL OF THE TYPE ASSERTIONS JUST WTF WHERE YOU THINKING? THIS IS UGLY AND HAS SO MANY FOOTGUNS
 func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config, error) {
 	senders := map[string]sender.Sender{}
-	if configMap["channels"] != nil {
+	if configMap["senders"] != nil {
 		sendersConfigMap := configMap["senders"].(map[string]any)
 		for senderIdentifier, senderConfig := range sendersConfigMap {
 			newSender, err := senderManager.SenderFromConfig(senderConfig.(map[string]any))
@@ -76,7 +77,12 @@ func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config,
 			for _, senderId := range channelConfig.(map[string]any)["senders"].([]any) {
 				channelSenders = append(channelSenders, senders[senderId.(string)])
 			}
+			name := channelConfig.(map[string]any)["name"]
+			if name == nil {
+				name = ""
+			}
 			channels[channelId] = &channel.Channel{
+				Name:    name.(string),
 				Token:   channelConfig.(map[string]any)["token"].(string),
 				Senders: channelSenders,
 			}
