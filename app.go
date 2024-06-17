@@ -45,7 +45,7 @@ func NewApp() *App {
 func NewDefaultApp() (*App, error) {
 	app := NewApp()
 	manager := manager.NewWithAllBuiltIn()
-	app.SenderManager = &manager
+	app.SenderManager = manager
 
 	config, err := config.FromFile(app.SenderManager, config.DefaultLocation())
 	if err != nil {

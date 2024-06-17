@@ -13,8 +13,8 @@ type Manager struct {
 	Factories map[string]func() sender.Sender
 }
 
-func NewWithAllBuiltIn() Manager {
-	return Manager{
+func NewWithAllBuiltIn() *Manager {
+	return &Manager{
 		Factories: map[string]func() sender.Sender{
 			"discord": func() sender.Sender {
 				return new(discord.DiscordWebhookSender)

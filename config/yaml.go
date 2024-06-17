@@ -1,36 +1,32 @@
 package config
 
 import (
-	_ "embed"
-	"os"
+	"bytes"
 
-	"github.com/gornius/infobutor/sender/manager"
 	"gopkg.in/yaml.v3"
 )
 
 type YamlParser struct {
 }
 
-func (yp *YamlParser) FromFile(senderManager *manager.Manager, file []byte) (map[string]any, error) {
+func (yp *YamlParser) FromFile(bytes *[]byte) (map[string]any, error) {
 	configMap := map[string]any{}
 
-	if err := yaml.Unmarshal(file, configMap); err != nil {
+	if err := yaml.Unmarshal(*bytes, configMap); err != nil {
 		return nil, err
 	}
 	return configMap, nil
 }
 
-func (yp *YamlParser) ToFile(path string, configMap map[string]any) error {
-	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0664)
-	if err != nil {
-		return err
-	}
+func (yp *YamlParser) ToFile(configMap map[string]any) (*[]byte, error) {
+	buf := new(bytes.Buffer)
 
-	encoder := yaml.NewEncoder(file)
+	encoder := yaml.NewEncoder(buf)
 	encoder.SetIndent(2)
 	if err := encoder.Encode(configMap); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	bytes := buf.Bytes()
+	return &bytes, nil
 }

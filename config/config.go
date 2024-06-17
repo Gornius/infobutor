@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -17,12 +18,29 @@ type Config struct {
 }
 
 type ConfigParser interface {
-	FromFile(manager *manager.Manager, file []byte) (map[string]any, error)
-	ToFile(path string, configMap map[string]any) error
+	FromFile(bytes *[]byte) (map[string]any, error)
+	ToFile(configMap map[string]any) (*[]byte, error)
 }
 
 func DefaultLocation() string {
 	return xdg.ConfigHome + "/infobutor/conf.yaml"
+}
+
+func createDefaultConfigFileIfDoesNotExist(path string, parser ConfigParser) error {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		bytes, err := parser.ToFile(GetDefaultConfig())
+		if err != nil {
+			return err
+		}
+		file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
+		if err != nil {
+			return err
+		}
+		file.Write(*bytes)
+	} else if err != nil {
+		return err
+	}
+	return nil
 }
 
 func FromFile(manager *manager.Manager, path string) (*Config, error) {
@@ -34,20 +52,14 @@ func FromFile(manager *manager.Manager, path string) (*Config, error) {
 		return nil, errors.New("unsupported config type")
 	}
 
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		if err := parser.ToFile(path, GetDefaultConfig()); err != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		return nil, err
-	}
+	createDefaultConfigFileIfDoesNotExist(path, parser)
 
 	file, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
-	configMap, err := parser.FromFile(manager, file)
+	configMap, err := parser.FromFile(&file)
 	if err != nil {
 		return nil, err
 	}
@@ -55,45 +67,57 @@ func FromFile(manager *manager.Manager, path string) (*Config, error) {
 	return FromMap(manager, configMap)
 }
 
-// TODO: refactor - AND GET RID OF ALL OF THE TYPE ASSERTIONS JUST WTF WHERE YOU THINKING? THIS IS UGLY AND HAS SO MANY FOOTGUNS
+type configStructure struct {
+	Senders  map[string]map[string]any `json:"senders"`
+	Channels map[string]struct {
+		Name    string   `json:"name"`
+		Token   string   `json:"token"`
+		Senders []string `json:"senders"`
+	} `json:"channels"`
+}
+
 func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config, error) {
+	tempJson, err := json.Marshal(configMap)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := &configStructure{}
+	err = json.Unmarshal(tempJson, cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	senders := map[string]sender.Sender{}
-	if configMap["senders"] != nil {
-		sendersConfigMap := configMap["senders"].(map[string]any)
-		for senderIdentifier, senderConfig := range sendersConfigMap {
-			newSender, err := senderManager.SenderFromConfig(senderConfig.(map[string]any))
-			if err != nil {
-				return nil, err
-			}
-			senders[senderIdentifier] = newSender
+	sendersConfig := cfg.Senders
+	for senderId, senderConfig := range sendersConfig {
+		newSender, err := senderManager.SenderFromConfig(senderConfig)
+		if err != nil {
+			return nil, err
 		}
+		senders[senderId] = newSender
 	}
 
 	channels := map[string]*channel.Channel{}
-	if configMap["channels"] != nil {
-		channelConfigMap := configMap["channels"].(map[string]any)
-		for channelId, channelConfig := range channelConfigMap {
-			channelSenders := []sender.Sender{}
-			for _, senderId := range channelConfig.(map[string]any)["senders"].([]any) {
-				channelSenders = append(channelSenders, senders[senderId.(string)])
+	for channelId, channelConfig := range cfg.Channels {
+		channelSenders := []sender.Sender{}
+		for _, senderId := range channelConfig.Senders {
+			sender, ok := senders[senderId]
+			if !ok {
+				return nil, errors.New("channel tried to use sender that doesn't exist")
 			}
-			name := channelConfig.(map[string]any)["name"]
-			if name == nil {
-				name = ""
-			}
-			channels[channelId] = &channel.Channel{
-				Name:    name.(string),
-				Token:   channelConfig.(map[string]any)["token"].(string),
-				Senders: channelSenders,
-			}
+			channelSenders = append(channelSenders, sender)
+		}
+		channels[channelId] = &channel.Channel{
+			Name:    channelConfig.Name,
+			Token:   channelConfig.Token,
+			Senders: channelSenders,
 		}
 	}
 
 	config := new(Config)
-
 	config.Senders = senders
 	config.Channels = channels
-
 	return config, nil
 }
 
