@@ -76,5 +76,7 @@ func sendReloadRequest(port string) (err error) {
 		return errors.New("couldn't reload config: " + *responseData.Reason)
 	}
 
+	fmt.Println("Reloaded successfully")
+
 	return err
 }
