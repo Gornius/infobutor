@@ -13,8 +13,9 @@ import (
 )
 
 type Config struct {
-	Channels map[string]*channel.Channel
-	Senders  map[string]sender.Sender
+	ConfigPath string
+	Channels   map[string]*channel.Channel
+	Senders    map[string]sender.Sender
 }
 
 type ConfigParser interface {

@@ -69,11 +69,11 @@ func sendReloadRequest(port string) (err error) {
 		return err
 	}
 	defer response.Body.Close()
-	var responseData map[string]any
+	var responseData infobutor.ReloadConfigResponse
 	json.NewDecoder(response.Body).Decode(&responseData)
 
-	if !responseData["configReloaded"].(bool) {
-		return errors.New("couldn't reload config")
+	if !responseData.Success {
+		return errors.New("couldn't reload config: " + *responseData.Reason)
 	}
 
 	return err
