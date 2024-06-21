@@ -109,3 +109,7 @@ func (a *App) SetConfigPath(configPath string) error {
 
 	return nil
 }
+
+func (a *App) GetConfigPath() string {
+	return a.configPath
+}
