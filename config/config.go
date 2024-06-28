@@ -8,11 +8,13 @@ import (
 
 	"github.com/adrg/xdg"
 	"github.com/gornius/infobutor/channel"
+	"github.com/gornius/infobutor/pkg/randstring"
 	"github.com/gornius/infobutor/sender"
 	"github.com/gornius/infobutor/sender/manager"
 )
 
 type Config struct {
+	Secret     string
 	ConfigPath string
 	Channels   map[string]*channel.Channel
 	Senders    map[string]sender.Sender
@@ -69,6 +71,7 @@ func FromFile(manager *manager.Manager, path string) (*Config, error) {
 }
 
 type configStructure struct {
+	Secret   string                    `json:"secret"`
 	Senders  map[string]map[string]any `json:"senders"`
 	Channels map[string]struct {
 		Name    string   `json:"name"`
@@ -119,11 +122,13 @@ func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config,
 	config := new(Config)
 	config.Senders = senders
 	config.Channels = channels
+	config.Secret = cfg.Secret
 	return config, nil
 }
 
 func GetDefaultConfig() map[string]any {
 	return map[string]any{
+		"secret": randstring.WithLength(20),
 		"senders": map[string]any{
 			"my_telegram": map[string]any{
 				"type":      "telegram",

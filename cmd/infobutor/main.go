@@ -37,9 +37,15 @@ func execute() {
 		Short: "Reloads configuration",
 		Run: func(cmd *cobra.Command, args []string) {
 			port := cmd.Flag("port").Value.String()
-			err := sendReloadRequest(port)
+			app, err := infobutor.NewDefaultApp()
 			if err != nil {
 				fmt.Println(err)
+				return
+			}
+			err = sendReloadRequest(port, app.Config.Secret)
+			if err != nil {
+				fmt.Println(err)
+				return
 			}
 		},
 	})
@@ -50,7 +56,7 @@ func execute() {
 	}
 }
 
-func sendReloadRequest(port string) (err error) {
+func sendReloadRequest(port string, secret string) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			msg := r.(*runtime.TypeAssertionError).Error()
@@ -58,7 +64,9 @@ func sendReloadRequest(port string) (err error) {
 		}
 	}()
 
-	data := map[string]any{}
+	data := infobutor.ReloadConfigRequest{
+		Secret: secret,
+	}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err

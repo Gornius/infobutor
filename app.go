@@ -24,6 +24,10 @@ type ReloadConfigResponse struct {
 	Reason  *string `json:"reason"`
 }
 
+type ReloadConfigRequest struct {
+	Secret string `json:"secret"`
+}
+
 func NewApp() *App {
 	app := new(App)
 	app.Router = echo.New()
@@ -49,8 +53,20 @@ func NewApp() *App {
 	})
 
 	app.Router.POST("/reload-config", func(c echo.Context) error {
-		err := app.ReloadConfig()
-		if err != nil {
+		var body ReloadConfigRequest
+		if err := c.Bind(&body); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		if body.Secret != app.Config.Secret {
+			reason := "bad secret given"
+			return c.JSON(http.StatusBadRequest, ReloadConfigResponse{
+				Success: false,
+				Reason:  &reason,
+			})
+		}
+
+		if err := app.ReloadConfig(); err != nil {
 			msg := err.Error()
 			return c.JSON(http.StatusInternalServerError, &ReloadConfigResponse{
 				Success: false,
@@ -70,7 +86,7 @@ func NewDefaultApp() (*App, error) {
 	app := NewApp()
 	manager := manager.NewWithAllBuiltIn()
 	app.SenderManager = manager
-	app.SetConfigPath(config.DefaultLocation())
+	app.LoadConfig(config.DefaultLocation())
 
 	return app, nil
 }
@@ -89,24 +105,22 @@ func (a *App) GetChannelByToken(token string) (*channel.Channel, error) {
 	return channel, nil
 }
 
-func (a *App) ReloadConfig() error {
+func (a *App) LoadConfig(path string) error {
+	a.configPath = path
 	cfg, err := config.FromFile(a.SenderManager, a.configPath)
 	if err != nil {
 		return err
 	}
 	a.Config = cfg
-	log.Println("Config reloaded!")
 	return nil
 }
 
-func (a *App) SetConfigPath(configPath string) error {
-	a.configPath = configPath
-
-	err := a.ReloadConfig()
+func (a *App) ReloadConfig() error {
+	err := a.LoadConfig(a.configPath)
 	if err != nil {
 		return err
 	}
-
+	log.Println("Config reloaded!")
 	return nil
 }
 
