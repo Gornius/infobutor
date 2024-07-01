@@ -11,6 +11,7 @@ import (
 	"github.com/gornius/infobutor/message"
 )
 
+// sender that uses telegram bot to send messages
 type TelegramSender struct {
 	Config *TelegramSenderConfig
 }

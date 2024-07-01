@@ -20,11 +20,13 @@ type Config struct {
 	Senders    map[string]sender.Sender
 }
 
+// describes interface that is able to serialize/deserialize config to/from given format
 type ConfigParser interface {
 	FromFile(bytes *[]byte) (map[string]any, error)
 	ToFile(configMap map[string]any) (*[]byte, error)
 }
 
+// returns default location for config
 func DefaultLocation() string {
 	return xdg.ConfigHome + "/infobutor/conf.yaml"
 }
@@ -46,6 +48,7 @@ func createDefaultConfigFileIfDoesNotExist(path string, parser ConfigParser) err
 	return nil
 }
 
+// tries to create config from file. If it doesn't exist it creates a file and writes default config to it
 func FromFile(manager *manager.Manager, path string) (*Config, error) {
 	var parser ConfigParser
 	switch extension := filepath.Ext(path); extension {
@@ -80,6 +83,7 @@ type configStructure struct {
 	} `json:"sinks"`
 }
 
+// tries to create config from given map[string]any
 func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config, error) {
 	tempJson, err := json.Marshal(configMap)
 	if err != nil {
@@ -126,6 +130,7 @@ func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config,
 	return config, nil
 }
 
+// returns default config
 func GetDefaultConfig() map[string]any {
 	return map[string]any{
 		"secret": randstring.WithLength(20),

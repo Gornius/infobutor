@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// takes a path with optional "~/" at the beginning and expands it to current user's home folder
 func ExpandTildeToHomeDir(path string) (string, error) {
 	currentUserHome, err := os.UserHomeDir()
 	if err != nil {

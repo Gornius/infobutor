@@ -11,6 +11,7 @@ import (
 	"github.com/gornius/infobutor/message"
 )
 
+// sender that uses discord webhooks to send messages
 type DiscordWebhookSender struct {
 	Config *DiscordWebhookSenderConfig
 }

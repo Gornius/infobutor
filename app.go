@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gornius/infobutor/sink"
 	"github.com/gornius/infobutor/config"
 	"github.com/gornius/infobutor/message"
 	"github.com/gornius/infobutor/sender/manager"
+	"github.com/gornius/infobutor/sink"
 	"github.com/labstack/echo/v4"
 )
 

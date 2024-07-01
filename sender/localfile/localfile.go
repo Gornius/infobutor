@@ -12,6 +12,7 @@ import (
 	"github.com/gornius/infobutor/pkg/pathutils"
 )
 
+// sender that writes messages to local file
 type LocalFileSender struct {
 	Config *LocalFileSenderConfig
 }
