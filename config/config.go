@@ -7,16 +7,16 @@ import (
 	"path/filepath"
 
 	"github.com/adrg/xdg"
-	"github.com/gornius/infobutor/channel"
 	"github.com/gornius/infobutor/pkg/randstring"
 	"github.com/gornius/infobutor/sender"
 	"github.com/gornius/infobutor/sender/manager"
+	"github.com/gornius/infobutor/sink"
 )
 
 type Config struct {
 	Secret     string
 	ConfigPath string
-	Channels   map[string]*channel.Channel
+	Sinks   map[string]*sink.Sink
 	Senders    map[string]sender.Sender
 }
 
@@ -73,11 +73,11 @@ func FromFile(manager *manager.Manager, path string) (*Config, error) {
 type configStructure struct {
 	Secret   string                    `json:"secret"`
 	Senders  map[string]map[string]any `json:"senders"`
-	Channels map[string]struct {
+	Sinks map[string]struct {
 		Name    string   `json:"name"`
 		Token   string   `json:"token"`
 		Senders []string `json:"senders"`
-	} `json:"channels"`
+	} `json:"sinks"`
 }
 
 func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config, error) {
@@ -102,26 +102,26 @@ func FromMap(senderManager *manager.Manager, configMap map[string]any) (*Config,
 		senders[senderId] = newSender
 	}
 
-	channels := map[string]*channel.Channel{}
-	for channelId, channelConfig := range cfg.Channels {
-		channelSenders := []sender.Sender{}
-		for _, senderId := range channelConfig.Senders {
+	sinks := map[string]*sink.Sink{}
+	for sinkId, sinkConfig := range cfg.Sinks {
+		sinkSenders := []sender.Sender{}
+		for _, senderId := range sinkConfig.Senders {
 			sender, ok := senders[senderId]
 			if !ok {
-				return nil, errors.New("channel tried to use sender that doesn't exist")
+				return nil, errors.New("sink tried to use sender that doesn't exist")
 			}
-			channelSenders = append(channelSenders, sender)
+			sinkSenders = append(sinkSenders, sender)
 		}
-		channels[channelId] = &channel.Channel{
-			Name:    channelConfig.Name,
-			Token:   channelConfig.Token,
-			Senders: channelSenders,
+		sinks[sinkId] = &sink.Sink{
+			Name:    sinkConfig.Name,
+			Token:   sinkConfig.Token,
+			Senders: sinkSenders,
 		}
 	}
 
 	config := new(Config)
 	config.Senders = senders
-	config.Channels = channels
+	config.Sinks = sinks
 	config.Secret = cfg.Secret
 	return config, nil
 }
@@ -136,7 +136,7 @@ func GetDefaultConfig() map[string]any {
 				"chat_id":   "-123456789",
 			},
 		},
-		"channels": map[string]any{
+		"sinks": map[string]any{
 			"default": map[string]any{
 				"token":   "2018s1m0eme0i1we21ps21",
 				"senders": []string{"my_telegram"},

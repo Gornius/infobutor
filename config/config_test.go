@@ -26,7 +26,7 @@ func TestFromMap(t *testing.T) {
 	assert := assert.New(t)
 
 	configMap := GetDefaultConfig()
-	defaultChannelToken := configMap["channels"].(map[string]any)["default"].(map[string]any)["token"].(string)
+	defaultSinkToken := configMap["sinks"].(map[string]any)["default"].(map[string]any)["token"].(string)
 
 	mgr := manager.NewWithAllBuiltIn()
 
@@ -34,8 +34,8 @@ func TestFromMap(t *testing.T) {
 	assert.Nil(err)
 
 	assert.Equal(
-		defaultChannelToken,
-		config.Channels["default"].Token,
+		defaultSinkToken,
+		config.Sinks["default"].Token,
 	)
 }
 

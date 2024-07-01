@@ -8,5 +8,5 @@ type Message struct {
 
 type MessageEnvelope struct {
 	Message      Message
-	ChannelToken string
+	SinkToken string
 }

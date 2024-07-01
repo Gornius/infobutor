@@ -4,7 +4,7 @@ senders:
     api_token: YOUR_API_TOKEN
     chat_id: -123456789
 
-channels:
+sinks:
   default:
     token: 2018s1m0eme0i1we21ps21
     senders: 

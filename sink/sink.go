@@ -1,4 +1,4 @@
-package channel
+package sink
 
 import (
 	"sync"
@@ -7,14 +7,14 @@ import (
 	"github.com/gornius/infobutor/sender"
 )
 
-type Channel struct {
+type Sink struct {
 	Name    string
 	Token   string
 	Senders []sender.Sender
 }
 
 // TODO: implement async error handling and write tests
-func (ch *Channel) Send(message *message.Message) error {
+func (ch *Sink) Send(message *message.Message) error {
 	wg := sync.WaitGroup{}
 	for _, s := range ch.Senders {
 		s := s

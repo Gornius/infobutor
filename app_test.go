@@ -4,19 +4,19 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gornius/infobutor/channel"
+	"github.com/gornius/infobutor/sink"
 	"github.com/gornius/infobutor/config"
 	"github.com/gornius/infobutor/sender"
 	"github.com/gornius/infobutor/sender/manager"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetChannelByToken(t *testing.T) {
+func TestGetSinkByToken(t *testing.T) {
 	assert := assert.New(t)
 
 	app := NewApp()
 	app.Config = &config.Config{
-		Channels: map[string]*channel.Channel{
+		Sinks: map[string]*sink.Sink{
 			"test1_id": {
 				Name:    "test1_name",
 				Token:   "test1_token",
@@ -31,11 +31,11 @@ func TestGetChannelByToken(t *testing.T) {
 	}
 
 	var (
-		ch  *channel.Channel
+		ch  *sink.Sink
 		err error
 	)
 
-	ch, err = app.GetChannelByToken("test1_token")
+	ch, err = app.GetSinkByToken("test1_token")
 	assert.Nil(
 		err,
 	)
@@ -44,7 +44,7 @@ func TestGetChannelByToken(t *testing.T) {
 		ch.Name,
 	)
 
-	ch, err = app.GetChannelByToken("test2_token")
+	ch, err = app.GetSinkByToken("test2_token")
 	assert.Nil(
 		err,
 	)
@@ -53,7 +53,7 @@ func TestGetChannelByToken(t *testing.T) {
 		ch.Name,
 	)
 
-	_, err = app.GetChannelByToken("test3_token")
+	_, err = app.GetSinkByToken("test3_token")
 	assert.NotNil(
 		err,
 	)

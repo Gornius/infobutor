@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gornius/infobutor/channel"
+	"github.com/gornius/infobutor/sink"
 	"github.com/gornius/infobutor/config"
 	"github.com/gornius/infobutor/message"
 	"github.com/gornius/infobutor/sender/manager"
@@ -32,19 +32,19 @@ func NewApp() *App {
 	app := new(App)
 	app.Router = echo.New()
 
-	app.Router.POST("/send/:channelToken", func(c echo.Context) error {
+	app.Router.POST("/send/:sinkToken", func(c echo.Context) error {
 		var msg message.Message
-		channelToken := c.Param("channelToken")
+		sinkToken := c.Param("sinkToken")
 		if err := c.Bind(&msg); err != nil {
 			return c.NoContent(http.StatusBadRequest) // TODO: Implement error handling
 		}
 
-		channel, err := app.GetChannelByToken(channelToken)
+		sink, err := app.GetSinkByToken(sinkToken)
 		if err != nil {
 			return c.NoContent(http.StatusBadRequest) // TODO: Implement error handling
 		}
 
-		err = channel.Send(&msg)
+		err = sink.Send(&msg)
 		if err != nil {
 			return err
 		}
@@ -91,18 +91,18 @@ func NewDefaultApp() (*App, error) {
 	return app, nil
 }
 
-func (a *App) GetChannelByToken(token string) (*channel.Channel, error) {
-	var channel *channel.Channel
-	for _, ch := range a.Config.Channels {
+func (a *App) GetSinkByToken(token string) (*sink.Sink, error) {
+	var sink *sink.Sink
+	for _, ch := range a.Config.Sinks {
 		if ch.Token == token {
-			channel = ch
+			sink = ch
 			break
 		}
 	}
-	if channel == nil {
+	if sink == nil {
 		return nil, errors.New("provided token does not exists on any of defined senders")
 	}
-	return channel, nil
+	return sink, nil
 }
 
 func (a *App) LoadConfig(path string) error {
