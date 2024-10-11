@@ -4,17 +4,22 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gornius/infobutor/sink"
 	"github.com/gornius/infobutor/config"
 	"github.com/gornius/infobutor/sender"
-	"github.com/gornius/infobutor/sender/manager"
+	"github.com/gornius/infobutor/sink"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetSinkByToken(t *testing.T) {
 	assert := assert.New(t)
+	var err error
 
-	app := NewApp()
+	configFile, err := writeDefaultConfigToTemp(config.GetDefaultConfig())
+	if err != nil {
+		assert.Fail("couldn't write a temp config file")
+	}
+
+	app, err := createAppForTesting(configFile)
 	app.Config = &config.Config{
 		Sinks: map[string]*sink.Sink{
 			"test1_id": {
@@ -30,10 +35,7 @@ func TestGetSinkByToken(t *testing.T) {
 		},
 	}
 
-	var (
-		ch  *sink.Sink
-		err error
-	)
+	var ch *sink.Sink
 
 	ch, err = app.GetSinkByToken("test1_token")
 	assert.Nil(
@@ -67,7 +69,7 @@ func TestLoadConfig(t *testing.T) {
 		assert.Fail("couldn't write a temp config file")
 	}
 	app, err := createAppForTesting(configFile)
-	
+
 	assert.Nil(err)
 
 	assert.Equal(
@@ -105,7 +107,7 @@ func TestReloadConfig(t *testing.T) {
 	app.configPath = configFile2
 	err = app.ReloadConfig()
 	assert.Nil(err)
-	
+
 	assert.Equal(
 		"test2",
 		app.Config.Secret,
@@ -129,10 +131,11 @@ func writeDefaultConfigToTemp(configMap map[string]any) (string, error) {
 }
 
 func createAppForTesting(configFile string) (*App, error) {
-	app := NewApp()
-	app.SenderManager = manager.NewWithAllBuiltIn()
+	app, err := NewApp(
+		WithBuiltInSenders(),
+		WithConfigPath(configFile),
+	)
 
-	err := app.LoadConfig(configFile)
 	if err != nil {
 		return nil, err
 	}

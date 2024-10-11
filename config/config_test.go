@@ -8,13 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultLocation(t *testing.T) {
-	assert := assert.New(t)
-	loc := DefaultLocation()
-
-	assert.NotEmpty(loc)
-}
-
 func TestGetDefaultConfig(t *testing.T) {
 	assert := assert.New(t)
 	defaultConfig := GetDefaultConfig()
@@ -28,7 +21,11 @@ func TestFromMap(t *testing.T) {
 	configMap := GetDefaultConfig()
 	defaultSinkToken := configMap["sinks"].(map[string]any)["default"].(map[string]any)["token"].(string)
 
-	mgr := manager.NewWithAllBuiltIn()
+	mgr, err := manager.New()
+	assert.Nil(err)
+
+	err = mgr.RegisterBuiltInSenders()
+	assert.Nil(err)
 
 	config, err := FromMap(mgr, configMap)
 	assert.Nil(err)
@@ -44,7 +41,10 @@ func TestFromFile(t *testing.T) {
 
 	defaultConfig := GetDefaultConfig()
 
-	mgr := manager.NewWithAllBuiltIn()
+	mgr, err := manager.New()
+	mgr.RegisterBuiltInSenders()
+	assert.Nil(err)
+
 	parser := YamlParser{}
 
 	tempFile, err := os.CreateTemp("", "gotests")

@@ -22,7 +22,10 @@ func execute() {
 		Use:   "infobutor",
 		Short: "Infobutor is a program that handles distributing messages to user-defined sources",
 		Run: func(cmd *cobra.Command, args []string) {
-			app, err := infobutor.NewDefaultApp()
+			app, err := infobutor.NewApp(
+				infobutor.WithBuiltInSenders(),
+				infobutor.WithDefaultConfigPath(),
+			)
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -37,7 +40,10 @@ func execute() {
 		Short: "Reloads configuration",
 		Run: func(cmd *cobra.Command, args []string) {
 			port := cmd.Flag("port").Value.String()
-			app, err := infobutor.NewDefaultApp()
+			app, err := infobutor.NewApp(
+				infobutor.WithBuiltInSenders(),
+				infobutor.WithDefaultConfigPath(),
+			)
 			if err != nil {
 				fmt.Println(err)
 				return

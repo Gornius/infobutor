@@ -41,10 +41,11 @@ func TestSenderFromConfig(t *testing.T) {
 
 func TestRegister(t *testing.T) {
 	assert := assert.New(t)
-	manager := New()
+	manager, err := New()
+	assert.Nil(err)
 
 	// Register first item
-	err := manager.Register("mock", func() sender.Sender {
+	err = manager.Register("mock", func() sender.Sender {
 		return new(MockSender)
 	})
 	assert.Equal(nil, err)
