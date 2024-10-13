@@ -34,7 +34,11 @@ func GetBuiltInSendersFactories() map[string]func() sender.Sender {
 // tries to create a sender from map[string]any
 func (manager *Manager) SenderFromConfig(config map[string]any) (sender.Sender, error) {
 	senderKey := config["type"].(string)
-	sender := manager.Factories[senderKey]()
+	senderFactory, ok := manager.Factories[senderKey]
+	if !ok {
+		return nil, errors.New("couldn't find sender factory for sender of type " + senderKey)
+	}
+	sender := senderFactory()
 	sender.LoadConfig(config)
 
 	return sender, nil
