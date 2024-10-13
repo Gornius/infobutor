@@ -2,7 +2,6 @@ package manager
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gornius/infobutor/sender"
 	"github.com/gornius/infobutor/sender/discord"
@@ -46,7 +45,6 @@ func (manager *Manager) Register(name string, factory func() sender.Sender) erro
 	if manager.Factories[name] != nil {
 		return errors.New("tried to register a sender with a name that's already registered")
 	}
-	fmt.Printf("manager: %+v\n", manager)
 	manager.Factories[name] = factory
 	return nil
 }
