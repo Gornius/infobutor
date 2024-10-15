@@ -64,14 +64,8 @@ func (manager *Manager) RegisterBuiltInSenders() error {
 }
 
 // creates new sender manager instance
-func New(opts ...Option) (*Manager, error) {
+func New() (*Manager, error) {
 	manager := &Manager{}
 	manager.Factories = map[string]func() sender.Sender{}
-	for _, opt := range opts {
-		err := opt(manager)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return manager, nil
 }

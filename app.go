@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/adrg/xdg"
 	"github.com/gornius/infobutor/config"
 	"github.com/gornius/infobutor/message"
 	"github.com/gornius/infobutor/sender/manager"
@@ -31,40 +30,6 @@ type ReloadConfigRequest struct {
 
 type Option func(a *App) error
 
-func WithDefaultOptions() Option {
-	return func(a *App) error {
-		defaultOptions := []Option{
-			WithDefaultConfigPath(),
-			WithBuiltInSenders(),
-		}
-		for _, defaultOption := range defaultOptions {
-			err := defaultOption(a)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-}
-
-func WithBuiltInSenders() Option {
-	return func(a *App) error {
-		builtInSenderFactories := manager.GetBuiltInSendersFactories()
-		for name, factory := range builtInSenderFactories {
-			a.SenderManager.Register(name, factory)
-		}
-
-		return nil
-	}
-}
-
-func WithDefaultConfigPath() Option {
-	return func(a *App) error {
-		a.configPath = xdg.ConfigHome + "/infobutor/conf.yaml"
-		return nil
-	}
-}
-
 func WithConfigPath(path string) Option {
 	return func(a *App) error {
 		a.configPath = path
@@ -75,11 +40,11 @@ func WithConfigPath(path string) Option {
 func NewApp(opts ...Option) (*App, error) {
 	app := new(App)
 	app.Router = echo.New()
-	manager, err := manager.New()
+	senderManager, err := manager.New()
 	if err != nil {
 		return nil, err
 	}
-	app.SenderManager = manager
+	app.SenderManager = senderManager
 
 	app.Router.POST("/send/:sinkToken", func(c echo.Context) error {
 		var msg message.Message
@@ -128,6 +93,13 @@ func NewApp(opts ...Option) (*App, error) {
 		})
 	})
 
+	// Default settings
+	app.configPath = config.DefaultLocation()
+	for senderKey, senderFactory := range manager.GetBuiltInSendersFactories() {
+		senderManager.Register(senderKey, senderFactory)
+	}
+
+	// Options
 	for _, opt := range opts {
 		err := opt(app)
 		if err != nil {

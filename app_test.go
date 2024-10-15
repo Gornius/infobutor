@@ -132,7 +132,6 @@ func writeDefaultConfigToTemp(configMap map[string]any) (string, error) {
 
 func createAppForTesting(configFile string) (*App, error) {
 	app, err := NewApp(
-		WithBuiltInSenders(),
 		WithConfigPath(configFile),
 	)
 
